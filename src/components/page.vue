@@ -1,19 +1,22 @@
 <template>
   <div class="container">
-    <div class="page" id="page">
-      <div class="title">算术题</div>
-      <div class="fill">
-        <div class="fill-cell">日期：<div class="fill-cell-underline"></div></div>
-        <div class="fill-cell">分数：<div class="fill-cell-underline"></div></div>
-      </div>
-      <div class="formula">
-        <div class="formula-cell" v-for="(item, index) in formulas" :key="index">
-          <div class="formula-cell-f">{{ item.a }} {{ item.b >= 0 ? '+' : '-'}} {{ Math.abs(item.b) }} {{ item.c >= 0 ? '+' : '-'}} {{ Math.abs(item.c) }}</div>
+    <div class="pages" id="pages">
+      <div v-for="(formulas, index) in formulaList" :key="index" class="page" id="page">
+        <div class="title">算术题</div>
+        <div class="fill">
+          <div class="fill-cell">日期：<div class="fill-cell-underline"></div></div>
+          <div class="fill-cell">分数：<div class="fill-cell-underline"></div></div>
+        </div>
+        <div class="formula">
+          <div class="formula-cell" v-for="(item, index) in formulas" :key="index">
+            <div class="formula-cell-f">{{ item.a }} {{ item.b >= 0 ? '+' : '-'}} {{ Math.abs(item.b) }} {{ item.c >= 0 ? '+' : '-'}} {{ Math.abs(item.c) }}</div>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="tool noprint">
+      <div>生成页数：<input v-model="page"/></div>
       <button @click="refresh">刷新</button>
       <button @click="print">打印</button>
       <button @click="save">保存PDF</button>
@@ -30,28 +33,40 @@ const operatorList = ['+', '-']
 export default {
   data () {
     return {
-      formulas: []
+      formulaList: [],
+      formulas: [],
+      page: 10
     }
   },
   created () {
     this.refresh()
   },
+  watch: {
+    page: {
+      handler (val) {
+        this.refresh()
+      }
+    }
+  },
   methods: {
     refresh () {
-      this.formulas = []
-      while (1) {
-        let formula = this.genFormula()
+      this.formulaList = []
+      for (let i = 1; i <= this.page; i++) {
+        let formulas = []
+        while (1) {
+          let formula = this.genFormula()
 
-        if (this.formulas.indexOf(formula) >= 0) {
-          continue
-        }
-        this.formulas.push(this.genFormula())
+          if (formulas.indexOf(formula) >= 0) {
+            continue
+          }
+          formulas.push(this.genFormula())
 
-        if (this.formulas.length >= 30) {
-          break
+          if (formulas.length >= 30) {
+            break
+          }
         }
+        this.formulaList.push(formulas)
       }
-
       // console.log(this.formulas)
     },
     genFormula () {
@@ -86,12 +101,10 @@ export default {
 
     print () {
       let p = new Printd()
-      console.log(document.getElementById('page'))
+      console.log(document.getElementById('pages'))
       const cssText = `
       .page {
         margin: 0px;
-        width: 100%;
-        height: 100%;
         padding: 0;
         box-sizing: border-box;
         box-shadow: none;
@@ -105,11 +118,11 @@ export default {
         line-height: 60px;
       }
       `
-      p.print(document.getElementById('page'), ['/static/styles/page.css', cssText])
+      p.print(document.getElementById('pages'), ['/static/styles/page.css', cssText])
     },
 
     save () {
-      const element = document.getElementById('page')
+      const element = document.getElementById('pages')
       var opt = {
         margin: 1,
         filename: 'myfile.pdf',
@@ -117,7 +130,6 @@ export default {
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
         pagebreak: { mode: 'avoid-all' }
-
       }
 
       html2pdf().set(opt).from(element).save()
@@ -138,7 +150,6 @@ export default {
 
 .tool {
   min-width: 80px;
-  height: 46px;
   line-height: 46px;
   padding: 0 20px;
   background-color: #FFFFFF;
@@ -146,5 +157,14 @@ export default {
   left: 0;
   bottom: 10px;
   box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.3);
+  font-size: 14px;
+}
+
+.tool input {
+  width: 80px;
+}
+
+.page {
+  margin-bottom: 10px;
 }
 </style>
