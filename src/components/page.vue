@@ -162,6 +162,7 @@ export default {
 
 .tool input {
   width: 80px;
+  text-align: center;
 }
 
 .page {
